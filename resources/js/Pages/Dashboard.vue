@@ -88,7 +88,7 @@ const deletePost = (id) => {
                     <button 
                         @click="openCreateModal" 
                         class="border p-2 hover:bg-gray-100 rounded-md">
-                        Create +
+                        Create Post
                     </button>
                 </div>
             </div>

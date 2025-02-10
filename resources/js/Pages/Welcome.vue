@@ -1,137 +1,124 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 
 defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
 });
 
-onMounted(() => {
-  function toggleScrolled() {
-    const body = document.querySelector("body");
-    const header = document.querySelector("#header");
+const mobileMenuOpen = ref(false);
+const scrollTopVisible = ref(false);
 
-    if (!header?.classList.contains("scroll-up-sticky") &&
-        !header?.classList.contains("sticky-top") &&
-        !header?.classList.contains("fixed-top")) return;
+const toggleMobileMenu = () => {
+    mobileMenuOpen.value = !mobileMenuOpen.value;
+};
 
-    window.scrollY > 100 ? body.classList.add("scrolled") : body.classList.remove("scrolled");
-  }
-
-  function toggleScrollTop() {
-    let scrollTop = document.querySelector(".scroll-top");
-    if (scrollTop) {
-      window.scrollY > 100 ? scrollTop.classList.add("active") : scrollTop.classList.remove("active");
-    }
-  }
-
-  function scrollToTop(event) {
-    event.preventDefault();
+const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+};
 
-  function navmenuScrollspy() {
-    let navLinks = document.querySelectorAll(".navmenu a");
-
-    navLinks.forEach((link) => {
-      if (!link.hash) return;
-      let section = document.querySelector(link.hash);
-      if (!section) return;
-      let position = window.scrollY + 200;
-
-      if (position >= section.offsetTop && position <= section.offsetTop + section.offsetHeight) {
-        document.querySelectorAll(".navmenu a.active").forEach((activeLink) => activeLink.classList.remove("active"));
-        link.classList.add("active");
-      } else {
-        link.classList.remove("active");
-      }
-    });
-  }
-
-  function fixHashScroll() {
-    if (window.location.hash) {
-      let section = document.querySelector(window.location.hash);
-      if (section) {
-        setTimeout(() => {
-          let scrollMarginTop = getComputedStyle(section).scrollMarginTop;
-          window.scrollTo({
-            top: section.offsetTop - parseInt(scrollMarginTop),
-            behavior: "smooth",
-          });
-        }, 100);
-      }
+onMounted(() => {
+    function toggleScrolled() {
+        const body = document.querySelector("body");
+        window.scrollY > 100 ? body.classList.add("scrolled") : body.classList.remove("scrolled");
+        scrollTopVisible.value = window.scrollY > 100;
     }
-  }
 
-  // Initialize AOS (since it's already loaded in app.blade.php)
-  if (window.AOS) {
-    window.AOS.init({
-      duration: 600,
-      easing: "ease-in-out",
-      once: true,
-      mirror: false,
+    function toggleScrollTop() {
+        let scrollTop = document.querySelector(".scroll-top");
+        if (scrollTop) {
+            window.scrollY > 100 ? scrollTop.classList.add("active") : scrollTop.classList.remove("active");
+        }
+    }
+
+    function fixHashScroll() {
+        if (window.location.hash) {
+            let section = document.querySelector(window.location.hash);
+            if (section) {
+                setTimeout(() => {
+                    let scrollMarginTop = getComputedStyle(section).scrollMarginTop;
+                    window.scrollTo({
+                        top: section.offsetTop - parseInt(scrollMarginTop),
+                        behavior: "smooth",
+                    });
+                }, 100);
+            }
+        }
+    }
+
+    if (window.AOS) {
+        window.AOS.init({
+            duration: 600,
+            easing: "ease-in-out",
+            once: true,
+            mirror: false,
+        });
+    }
+
+    window.addEventListener("scroll", toggleScrolled);
+    window.addEventListener("scroll", toggleScrollTop);
+    window.addEventListener("load", toggleScrolled);
+    window.addEventListener("load", toggleScrollTop);
+    window.addEventListener("load", fixHashScroll);
+
+    onUnmounted(() => {
+        window.removeEventListener("scroll", toggleScrolled);
+        window.removeEventListener("scroll", toggleScrollTop);
+        window.removeEventListener("load", toggleScrolled);
+        window.removeEventListener("load", toggleScrollTop);
+        window.removeEventListener("load", fixHashScroll);
     });
-  }
-
-  // Event Listeners
-  window.addEventListener("scroll", toggleScrolled);
-  window.addEventListener("scroll", toggleScrollTop);
-  window.addEventListener("scroll", navmenuScrollspy);
-  window.addEventListener("load", toggleScrolled);
-  window.addEventListener("load", toggleScrollTop);
-  window.addEventListener("load", fixHashScroll);
-  window.addEventListener("load", navmenuScrollspy);
-
-  // Scroll top button
-  let scrollTop = document.querySelector(".scroll-top");
-  scrollTop?.addEventListener("click", scrollToTop);
-
-  // Cleanup on unmount
-  onUnmounted(() => {
-    window.removeEventListener("scroll", toggleScrolled);
-    window.removeEventListener("scroll", toggleScrollTop);
-    window.removeEventListener("scroll", navmenuScrollspy);
-    window.removeEventListener("load", toggleScrolled);
-    window.removeEventListener("load", toggleScrollTop);
-    window.removeEventListener("load", fixHashScroll);
-    window.removeEventListener("load", navmenuScrollspy);
-    scrollTop?.removeEventListener("click", scrollToTop);
-  });
 });
 </script>
 
 <template>
-<Head title="Welcome" />
-        <header id="header" class="header d-flex align-items-center fixed-top">
-            <div class="container-fluid container-xl position-relative d-flex align-items-center">
-                <a href="#" class="logo d-flex align-items-center me-auto">
-                    <img src="/public/images/gurr-logo.png" alt="ico">
-                    <h1 class="sitename">Gurr</h1>
-                </a>
-                <nav id="navmenu" class="navmenu">
-                    <div class="flex items-center justify-end" v-if="canLogin">
-                    <a href="#banner" class="mr-2 hover:text-indigo-200">Home</a>
-                    <a href="#services" class="mr-2 hover:text-indigo-200">Services</a>
-                    <a href="#contact" class="mr-2 hover:text-indigo-200">Contact</a>
+    <Head title="Welcome" />
+    <header id="header" class="bg-white shadow-md fixed top-0 w-full z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+            <!-- Logo -->
+            <a href="#" class="flex items-center">
+                <img src="/public/images/gurr-logo.png" alt="Gurr Logo" class="h-10">
+                <h1 class="ml-2 text-xl font-semibold text-gray-900">Gurr</h1>
+            </a>
+            
+            <!-- Desktop Menu -->
+            <nav class="hidden md:flex space-x-6" v-if="canLogin">
+                <a href="#banner" class="text-gray-700 hover:text-indigo-500">Home</a>
+                <a href="#services" class="text-gray-700 hover:text-indigo-500">Services</a>
+                <a href="#contact" class="text-gray-700 hover:text-indigo-500">Contact</a>
+                <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="text-gray-700 hover:text-indigo-500">Dashboard</Link>
+                <template v-else>
+                    <Link :href="route('login')" class="text-gray-700 hover:text-indigo-500">Log in</Link>
+                    <Link v-if="canRegister" :href="route('register')" class="text-gray-700 hover:text-indigo-500">Register</Link>
+                </template>
+            </nav>
+            
+            <!-- Mobile Menu Button -->
+            <button @click="toggleMobileMenu" class="md:hidden focus:outline-none">
+                <svg v-if="!mobileMenuOpen" class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg v-else class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
 
-                    <Link v-if="$page.props.auth.user" :href="route('dashboard')" class=" hover:text-indigo-200">
-                        Dashboard
-                    </Link>
-
-                    <template v-else>
-                        <Link :href="route('login')" class="mr-2 hover:text-indigo-200">
-                            Log in
-                        </Link>
-
-                        <Link v-if="canRegister" :href="route('register')" class=" hover:text-indigo-200">
-                            Register
-                        </Link>
-                    </template>
-                </div>
-                </nav>
+        <!-- Mobile Dropdown Menu -->
+        <div v-if="mobileMenuOpen" class="md:hidden bg-white border-t border-gray-200 w-full absolute left-0">
+            <div class="flex flex-col space-y-2 py-4 px-6">
+                <a href="#banner" class="text-gray-700 hover:text-indigo-500" @click="toggleMobileMenu">Home</a>
+                <a href="#services" class="text-gray-700 hover:text-indigo-500" @click="toggleMobileMenu">Services</a>
+                <a href="#contact" class="text-gray-700 hover:text-indigo-500" @click="toggleMobileMenu">Contact</a>
+                <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="text-gray-700 hover:text-indigo-500" @click="toggleMobileMenu">Dashboard</Link>
+                <template v-else>
+                    <Link :href="route('login')" class="text-gray-700 hover:text-indigo-500" @click="toggleMobileMenu">Log in</Link>
+                    <Link v-if="canRegister" :href="route('register')" class="text-gray-700 hover:text-indigo-500" @click="toggleMobileMenu">Register</Link>
+                </template>
             </div>
-        </header>
+        </div>
+    </header>
         <!-- Banner Section -->
         <section id="banner" class="banner section dark-background">
             <div class="overlay"></div> <!-- Added overlay div -->
@@ -248,12 +235,12 @@ onMounted(() => {
                             <div class="row gy-4">
                                 <div class="col-md-6">
                                     <label for="name-field" class="pb-2">Your Name</label>
-                                    <input type="text" name="name" id="name-field" class="form-control" required="">
+                                    <input type="text" name="name" id="name-field" class="form-control" required="" autocomplete="name">
                                 </div>
 
                                 <div class="col-md-6">
                                     <label for="email-field" class="pb-2">Your Email</label>
-                                    <input type="email" class="form-control" name="email" id="email-field" required="">
+                                    <input type="email" class="form-control" name="email" id="email-field" required="" autocomplete="email">
                                 </div>
 
                                 <div class="col-md-12">
