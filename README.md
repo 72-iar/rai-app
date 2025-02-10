@@ -32,6 +32,7 @@ cd <project_folder>
 ```
 
 ### 2. Open the Project
+- Rename `.env.example` to `.env`.
 - Open **VS Code** (or your preferred code editor).
 - Open the extracted/cloned project folder.
 
@@ -79,4 +80,5 @@ Once the server starts, a link will appear, typically:
 Press **Ctrl + Click** on the link to open it in your browser.
 
 You're all set! 🚀
+
 
