@@ -7,7 +7,7 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-# Laravel Project Installation Guide
+# rai-app Installation Guide
 
 ## Prerequisites
 Ensure you have the following installed on your system:
