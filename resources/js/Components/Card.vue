@@ -12,7 +12,7 @@ const user = usePage().props.auth.user;
 </script>
 
 <template>
-    <div class="bg-white w-86 h-72 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+    <div @click="$emit('edit', post)" class="bg-white w-86 h-72 rounded-xl p-6 shadow-sm flex flex-col justify-between cursor-pointer hover:bg-gray-100 transition">
         <div>
             <h3 class="text-lg font-bold">{{ post.title }}</h3>
             <p class="text-sm text-gray-500">{{ post.type.toUpperCase() }}</p>
@@ -22,15 +22,14 @@ const user = usePage().props.auth.user;
             <p class="text-xs text-gray-400">
                 Posted by {{ post.author?.first_name }} {{ post.author?.last_name }}
             </p>
-            <!-- Show edit & delete buttons only if the logged-in user is the post's author -->
             <div v-if="user.id === post.author_id" class="flex space-x-2">
                 <button 
-                    @click="$emit('edit', post)" 
+                    @click.stop="$emit('edit', post)" 
                     class="text-blue-500 hover:underline text-sm">
                     Edit
                 </button>
                 <button 
-                    @click="$emit('delete')" 
+                    @click.stop="$emit('delete')" 
                     class="text-red-500 hover:underline text-sm">
                     Delete
                 </button>

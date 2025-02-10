@@ -9,8 +9,9 @@ const page = usePage();
 const user = computed(() => page.props.auth.user || { id: null, first_name: 'Guest' });
 const posts = computed(() => page.props.posts || []);
 
-// Modal state
+// Modals state
 const isModalOpen = ref(false);
+const isViewing = ref(false); // ✅ Track if we are viewing a post
 const isEditing = ref(false); // ✅ Track if we are editing
 const post = ref({
     title: '',
@@ -18,13 +19,14 @@ const post = ref({
     message: '',
     author_id: computed(() => user.value.id),
 });
-const postId = ref(null); // ✅ Track the post being edited
+const postId = ref(null); // ✅ Track the post being edited/viewed
 
 // Open modal for creating a new post
 const openCreateModal = () => {
     post.value = { title: '', type: 'news', message: '', author_id: user.value.id };
     postId.value = null;
     isEditing.value = false;
+    isViewing.value = false;
     isModalOpen.value = true;
 };
 
@@ -33,6 +35,16 @@ const openEditModal = (existingPost) => {
     post.value = { ...existingPost };
     postId.value = existingPost.id;
     isEditing.value = true;
+    isViewing.value = false;
+    isModalOpen.value = true;
+};
+
+// Open modal for viewing a post
+const openViewModal = (existingPost) => {
+    post.value = { ...existingPost };
+    postId.value = existingPost.id;
+    isViewing.value = true;
+    isEditing.value = false;
     isModalOpen.value = true;
 };
 
@@ -88,23 +100,43 @@ const deletePost = (id) => {
                     <Card v-for="post in posts" 
                           :key="post.id" 
                           :post="post" 
+                          @click="openViewModal(post)" 
                           @delete="deletePost(post.id)" 
                           @edit="openEditModal" />
                 </div>
             </div>
         </div>
 
-        <!-- Modal (Create & Edit) -->
+        <!-- Modal (Create, Edit, View) -->
         <div 
             v-if="isModalOpen" 
             class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white p-6 rounded-lg shadow-lg w-[600px] max-w-2xl">
                 <h2 class="text-xl font-semibold mb-4">
-                    {{ isEditing ? 'Edit Post' : 'Whats on your mind?' }}
+                    {{ isViewing ? 'Post Details' : isEditing ? 'Edit Post' : "What's on your mind?" }}
                 </h2>
-                
-                <form @submit.prevent="submitPost">
-                    <!-- Title Input -->
+
+                <!-- View Mode -->
+                <div v-if="isViewing">
+                    <p class="text-gray-700"><strong>Title:</strong> {{ post.title }}</p>
+                    <p class="text-gray-500"><strong>Type:</strong> {{ post.type.toUpperCase() }}</p>
+                    <p class="mt-4 text-gray-700"><strong>Message:</strong> {{ post.message }}</p>
+                    <p class="mt-4 text-xs text-gray-400">
+                        Posted by {{ post.author?.first_name }} {{ post.author?.last_name }}
+                    </p>
+
+                    <!-- Back Button -->
+                    <div class="mt-4 flex justify-end">
+                        <button 
+                            @click="isModalOpen = false" 
+                            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                            Back
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Create/Edit Mode -->
+                <form v-else @submit.prevent="submitPost">
                     <label class="block text-gray-700">Title</label>
                     <input 
                         type="text" 
@@ -113,7 +145,6 @@ const deletePost = (id) => {
                         placeholder="Enter title" 
                         required>
                     
-                    <!-- Type Dropdown -->
                     <label class="block text-gray-700">Type</label>
                     <select 
                         v-model="post.type" 
@@ -123,7 +154,6 @@ const deletePost = (id) => {
                         <option value="task">Task</option>
                     </select>
 
-                    <!-- Message Input -->
                     <label class="block text-gray-700">Message</label>
                     <textarea 
                         v-model="post.message" 
@@ -132,10 +162,8 @@ const deletePost = (id) => {
                         required>
                     </textarea>
 
-                    <!-- Hidden Author ID Field -->
                     <input type="hidden" v-model="post.author_id">
 
-                    <!-- Buttons -->
                     <div class="mt-4 flex justify-end gap-2">
                         <button 
                             @click="isModalOpen = false" 
@@ -144,13 +172,13 @@ const deletePost = (id) => {
                             Close
                         </button>
                         <button 
+                            v-if="!isViewing" 
                             type="submit" 
                             class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                             {{ isEditing ? 'Update' : 'Submit' }}
                         </button>
                     </div>
                 </form>
-                
             </div>
         </div>
     </AppLayout>
